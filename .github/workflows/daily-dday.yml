@@ -3,7 +3,8 @@ name: Daily D-Day Update
 on:
   schedule:
     # 매일 한국 시간(KST) 밤 10시 30분에 자동 실행
-    - cron: '30 13 * * *'
+    - cron: '30 22 * * *'
+      timezone: 'Asia/Seoul'
   workflow_dispatch: # 수동 테스트용 버튼
 
 jobs:
