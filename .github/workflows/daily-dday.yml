@@ -1,0 +1,56 @@
+name: Daily D-Day Update
+
+on:
+  schedule:
+    # 매일 한국 시간(KST) 밤 11시 50분에 자동 실행 (UTC 기준 14:50)
+    - cron: '50 14 * * *'
+  workflow_dispatch: # 수동 테스트용 버튼
+
+jobs:
+  update-dday:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # 전체 커밋 기록을 가져와야 오늘 날짜의 커밋을 정확히 필터링할 수 있습니다.
+          fetch-depth: 0
+
+      - name: Check Today's Commits and Update D-Day
+        run: |
+          # 1. 환경 설정 (한국 시간 기준 오늘 날짜)
+          export TZ='Asia/Seoul'
+          TODAY=$(date +'%Y-%m-%d')
+          echo "오늘 날짜: $TODAY"
+
+          # 2. 오늘 내가 남긴 커밋 개수 확인 (레포지토리 전체 기준)
+          # github-actions 봇이 남긴 커밋은 세지 않습니다.
+          COMMIT_COUNT=$(git log --all --since="${TODAY} 00:00:00" --format="%an" | grep -v -i "github-actions" | wc -l)
+          echo "오늘의 커밋 횟수: $COMMIT_COUNT"
+
+          # 3. README.md에서 현재 D-Day 추출 (사진의 형식인 (D+31) 형태)
+          # 값을 찾지 못하면 30으로 시작합니다.
+          CURRENT_DDAY=$(grep -oP '(?<=\(D\+)\d+(?=\))' README.md || echo "30")
+          echo "현재 D-Day: (D+$CURRENT_DDAY)"
+
+          # 4. 로직 결정: 오늘 커밋이 1개 이상 있다면 D-Day를 1 증가시킵니다.
+          if [ "$COMMIT_COUNT" -gt 0 ]; then
+            echo "오늘 커밋 기록이 있습니다! D-Day를 1 증가시킵니다."
+            NEW_DDAY=$((CURRENT_DDAY + 1))
+            
+            # README.md 내용 치환 (D+현재숫자) -> (D+새숫자)
+            sed -i "s/(D+${CURRENT_DDAY})/(D+${NEW_DDAY})/g" README.md
+            
+          else
+            echo "오늘 커밋 기록이 없습니다. D-Day를 유지합니다."
+            NEW_DDAY=$CURRENT_DDAY
+          fi
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          
+          # 변경사항(D-Day 증가)이 있을 때만 커밋 및 푸시
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: 일일 커밋 달성! D+($NEW_DDAY) 업데이트" && git push)

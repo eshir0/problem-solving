@@ -1,4 +1,4 @@
-name: Update Problem Count and D-Day
+name: Update Problem Count
 
 on:
   push:
@@ -12,42 +12,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Calculate count, Check increase, and Update README
+      - name: Calculate file count and Update README
         run: |
-          # 1. 방금 푸시된 파일들을 기준으로 '새 총 풀이 수' 계산
-          NEW_COUNT=$(find "백준" "SWEA" "정올" -type f 2>/dev/null | wc -l)
-          echo "새 총 풀이 수: $NEW_COUNT"
+          # 한글 폴더명을 인식할 수 있도록 정확히 적어줍니다.
+          # 각 폴더 안의 파일 개수를 합산합니다.
+          COUNT=$(find "백준" "SWEA" "정올" -type f 2>/dev/null | wc -l)
+          echo "Total files: $COUNT"
 
-          # 2. 업데이트 되기 전 README.md에서 '기존 총 풀이 수' 추출 (기본값 0)
-          OLD_COUNT=$(grep -oP '(?<=- \*\*총 풀이 수\*\*: )\d+' README.md || echo "0")
-          echo "기존 총 풀이 수: $OLD_COUNT"
-
-          # 3. README.md에서 '현재 D-Day' 추출
-          # 사진의 형식인 (D+숫자) 에서 숫자만 가져오며, 값이 없으면 요청하신 대로 30으로 시작합니다.
-          CURRENT_DDAY=$(grep -oP '(?<=\(D\+)\d+(?=\))' README.md || echo "30")
-          echo "현재 D-Day: $CURRENT_DDAY"
-
-          # 4. 풀이 수가 1 이상 증가했는지 비교하여 D-Day 계산
-          if [ "$NEW_COUNT" -gt "$OLD_COUNT" ]; then
-            echo "풀이 수가 증가했습니다! D-Day를 1 증가시킵니다."
-            NEW_DDAY=$((CURRENT_DDAY + 1))
-          else
-            echo "풀이 수에 변화가 없습니다. D-Day를 유지합니다."
-            NEW_DDAY=$CURRENT_DDAY
-          fi
-
-          # 5. README.md 업데이트
-          # 기존 '총 풀이 수' 줄 전체를 찾아 새 풀이 수로 변경
-          sed -i "s/.*총 풀이 수.*/- **총 풀이 수**: $NEW_COUNT/g" README.md
-          
-          # 기존 시작일 줄의 (D+현재숫자) 부분을 (D+새숫자)로 변경
-          sed -i "s/(D+${CURRENT_DDAY})/(D+${NEW_DDAY})/g" README.md
+          # README.md 업데이트 (공백에 민감하지 않게 정규표현식 수정)
+          sed -i "s/.*총 풀이 수.*/- **총 풀이 수**: $COUNT/g" README.md
 
       - name: Commit and Push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          
-          # 파일에 변경사항이 생겼을 때만 커밋 및 푸시
-          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: 문제 풀이 수($NEW_COUNT) 및 D+($NEW_DDAY) 업데이트" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: 문제 풀이 개수 업데이트 ($COUNT)" && git push)
