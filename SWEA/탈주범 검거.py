@@ -1,27 +1,33 @@
-# 일부분의 ai 도움을 받은 코드
+from collections import deque
 for T in range(1,int(input())+1):
-    N,M,R,C,L = map(int,input().split())
-    m = [list(map(int,input().split())) for _ in range(N)]
+    N, M, R, C, L = map(int,input().split())
+    m = [list(map(int,input().split())) for i in range(N)]
 
-    v = [[False] * M for _ in range(N)]
-    v[R][C] = True
-    cnt = 0
-    ans = 1
+    q = deque([(R,C,1)])
+    
     dy = [0,0,-1,1]
     dx = [-1,1,0,0]
 
-    q = [(R,C,1)]
+    ck = {1: [0,1,2,3], 2 : [2,3], 3: [0,1], 4:[2,1], 5 : [3,1], 6 : [0,3] , 7 : [0,2]}
+
+    v = [[False] * M for _ in range(N)]
+    v[R][C] = True
+
+    ans = 0
+
     while q:
-        y,x,c = q.pop(0)
-        if c == L:
-            continue
+        y,x,c = q.popleft()
+
         r = m[y][x]
         m[y][x] = 8
+        if c == L:
+            continue
+
         if r == 1:
-            for i in range(4):
+            for i in ck[r]:
                 ny = y + dy[i]
                 nx = x + dx[i]
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
                     if dy[i] == -1:
                         if m[ny][nx] in [1,2,5,6]:
                             v[ny][nx] = True
@@ -43,103 +49,96 @@ for T in range(1,int(input())+1):
                             ans += 1
                             q.append((ny,nx,c+1))
         elif r == 2:
-            for i in [(-1,0),(1,0)]:
-                iy,ix = i
-                ny = y + iy
-                nx = x + ix
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
-                    if iy == -1:
+            for i in ck[r]:
+                ny = y + dy[i]
+                nx = x + dx[i]
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
+                    if dy[i] == -1:
                         if m[ny][nx] in [1,2,5,6]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-                    elif iy == 1:
+                    elif dy[i] == 1:
                         if m[ny][nx] in [1,2,4,7]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
         elif r == 3:
-            for i in [(0,-1),(0,1)]:
-                iy,ix = i
-                ny = y + iy
-                nx = x + ix
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
-                    if ix == -1:
+            for i in ck[r]:
+                ny = y + dy[i]
+                nx = x + dx[i]
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
+                    if dx[i] == -1:
                         if m[ny][nx] in [1,3,4,5]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-                    elif ix == 1:
+                    elif dx[i] == 1:
                         if m[ny][nx] in [1,3,6,7]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
         elif r == 4:
-            for i in [(-1,0),(0,1)]:
-                iy,ix = i
-                ny = y + iy
-                nx = x + ix
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
-                    if iy == -1:
+            for i in ck[r]:
+                ny = y + dy[i]
+                nx = x + dx[i]
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
+                    if dy[i] == -1:
                         if m[ny][nx] in [1,2,5,6]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-                    elif ix == 1:
+                    elif dx[i] == 1:
                         if m[ny][nx] in [1,3,6,7]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
         elif r == 5:
-            for i in [(1,0),(0,1)]:
-                iy,ix = i
-                ny = y + iy
-                nx = x + ix
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
-                    if iy == 1:
+            for i in ck[r]:
+                ny = y + dy[i]
+                nx = x + dx[i]
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
+                    if dy[i] == 1:
                         if m[ny][nx] in [1,2,4,7]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-                    elif ix == 1:
+                    elif dx[i] == 1:
                         if m[ny][nx] in [1,3,6,7]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
         elif r == 6:
-            for i in [(1,0),(0,-1)]:
-                iy,ix = i
-                ny = y + iy
-                nx = x + ix
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
-                    if iy == 1:
+            for i in ck[r]:
+                ny = y + dy[i]
+                nx = x + dx[i]
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
+                    if dy[i] == 1:
                         if m[ny][nx] in [1,2,4,7]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-                    elif ix == -1:
+                    elif dx[i] == -1:
                         if m[ny][nx] in [1,3,4,5]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
         elif r == 7:
-            for i in [(-1,0),(0,-1)]:
-                iy,ix = i
-                ny = y + iy
-                nx = x + ix
-                if 0 <= ny < N and 0 <= nx < M and  not v[ny][nx]:
-                    if iy == -1:
+            for i in ck[r]:
+                ny = y + dy[i]
+                nx = x + dx[i]
+                if 0 <= ny < N and 0 <= nx < M and not v[ny][nx]:
+                    if dy[i] == -1:
                         if m[ny][nx] in [1,2,5,6]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-                    elif ix == -1:
+                    elif dx[i] == -1:
                         if m[ny][nx] in [1,3,4,5]:
                             v[ny][nx] = True
                             ans += 1
                             q.append((ny,nx,c+1))
-
-    print(f'#{T} {ans}')
+    print(f'#{T} {ans+1}')
 
 # ai가 만든 코드
 for T in range(1, int(input()) + 1):
